@@ -5,4 +5,4 @@ format:
 	.venv/bin/isort .
 
 mypy:
-	mypy .
+	.venv/bin/mypy .
