@@ -1,11 +1,12 @@
 from typing import Iterable
 
-from PIL import Image
+from ..repository import ImageSpec, TagSpec
 
 
 class StaticImageAnnotator:
-    def __init__(self, tags: Iterable[str]):
-        self._tags = tags
-
-    def annotate(self, _img: Image) -> Iterable[str]:
-        return self._tags
+    def annotate(
+        self,
+        imgs: Iterable[ImageSpec],
+        tags: Iterable[TagSpec],
+    ) -> Iterable[tuple[ImageSpec, TagSpec]]:
+        return ((img, tag) for img in imgs for tag in tags)

@@ -1,7 +1,11 @@
 from typing import Iterable, Protocol
 
-from PIL import Image
+from ..repository import ImageSpec, TagSpec
 
 
 class ImageAnnotator(Protocol):
-    def annotate(self, img: Image) -> Iterable[str]: ...
+    def annotate(
+        self,
+        imgs: Iterable[ImageSpec],
+        tags: Iterable[TagSpec],
+    ) -> Iterable[tuple[ImageSpec, TagSpec]]: ...
