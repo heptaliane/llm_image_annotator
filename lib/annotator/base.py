@@ -1,6 +1,6 @@
 from typing import Iterable, Protocol
 
-from ..repository import ImageSpec, TagSpec
+from ..repository.base import ImageSpec, TagSpec
 
 
 class ImageAnnotator(Protocol):

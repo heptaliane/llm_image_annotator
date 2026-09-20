@@ -1,7 +1,7 @@
 import hashlib
 import io
 
-from PIL import Image
+from PIL.Image import Image
 
 
 def image_hash(img: Image) -> str:

@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterable
 
-from PIL import Image
+from PIL.Image import Image
 
 from .base import (GetImageFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
                    TagSpec)
@@ -49,7 +49,7 @@ class MemoryImageRegistry:
             basename=self._ing(img),
             ext=self._fmt.lower(),
         )
-        path = osp.join(self._basedir, filename)
+        path = osp.join(self._basedir.name, filename)
         img.save(path, format=self._fmt.upper())
 
         spec = ImageSpec(path=Path(path))
@@ -62,7 +62,7 @@ class MemoryImageRegistry:
             spec = self._image_lut[img.path]
             self._image_lut[img.path] = ImageSpec(
                 path=img.path,
-                tags=(*spec.tags, tag),
+                tags=(*spec.tags, tag.label),
                 created_at=spec.created_at,
             )
 
@@ -80,4 +80,8 @@ class MemoryImageRegistry:
         return True
 
     def get(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]:
-        return (img for img in self._images if self._validate_image(img, filter_spec))
+        return (
+            img
+            for img in self._image_lut.values()
+            if self._validate_image(img, filter_spec)
+        )

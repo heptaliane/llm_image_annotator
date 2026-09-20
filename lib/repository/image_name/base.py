@@ -1,5 +1,5 @@
 from typing import Callable
 
-from PIL import Image
+from PIL.Image import Image
 
 type ImageNameGenerator = Callable[[Image], str]

@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Protocol
 
-from PIL import Image
+from PIL.Image import Image
 
 
 @dataclass(frozen=True)
