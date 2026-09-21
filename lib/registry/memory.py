@@ -1,13 +1,8 @@
-from os import path as osp
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Iterable
-
-from PIL.Image import Image
 
 from .base import (GetImageFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
                    TagSpec)
-from .image_name.base import ImageNameGenerator
 
 
 class MemoryTagRegistry:
@@ -38,21 +33,11 @@ class MemoryTagRegistry:
 
 
 class MemoryImageRegistry:
-    def __init__(self, ing: ImageNameGenerator, fmt: str):
+    def __init__(self):
         self._image_lut: dict[Path, ImageSpec] = {}
-        self._basedir = TemporaryDirectory()
-        self._ing = ing
-        self._fmt = fmt
 
-    def add(self, img: Image) -> ImageSpec:
-        filename = "{basename}.{ext}".format(
-            basename=self._ing(img),
-            ext=self._fmt.lower(),
-        )
-        path = osp.join(self._basedir.name, filename)
-        img.save(path, format=self._fmt.upper())
-
-        spec = ImageSpec(path=Path(path))
+    def add(self, path: Path) -> ImageSpec:
+        spec = ImageSpec(path=path)
         self._image_lut[spec.path] = spec
 
         return spec

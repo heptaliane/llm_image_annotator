@@ -3,8 +3,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Iterable, Protocol
 
-from PIL.Image import Image
-
 
 @dataclass(frozen=True)
 class TagKind:
@@ -49,7 +47,7 @@ class GetImageFilterSpec:
 
 
 class ImageRegistry(Protocol):
-    def add(self, img: Image) -> ImageSpec: ...
+    def add(self, path: Path) -> ImageSpec: ...
 
     def add_tags(self, tags: Iterable[tuple[ImageSpec, TagSpec]]): ...
 
