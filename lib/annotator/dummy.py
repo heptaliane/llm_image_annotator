@@ -10,3 +10,6 @@ class StaticImageAnnotator:
         tags: Iterable[TagSpec],
     ) -> Iterable[tuple[ImageSpec, TagSpec]]:
         return ((img, tag) for img in imgs for tag in tags)
+
+    def name(self) -> str:
+        return "dummy"
