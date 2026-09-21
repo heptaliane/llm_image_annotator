@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from ..repository.base import ImageSpec, TagSpec
+from ..registry.base import ImageSpec, TagSpec
 
 
 class StaticImageAnnotator:
