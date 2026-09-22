@@ -5,20 +5,22 @@ from .base import (GetImageFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
                    TagSpec)
 
 
-class MemoryTagRegistry:
+class MemoryRegistry:
     def __init__(self):
         self._kinds: list[TagKind] = []
         self._tags: list[TagSpec] = []
+        self._images: dict[Path, ImageSpec] = {}
 
-    def add_kind(self, label: str):
+    def add_tag_kind(self, label: str):
         kind = TagKind(label=label)
         self._kinds.append(kind)
 
-    def get_kind(self) -> Iterable[TagKind]:
+    def get_tag_kinds(self) -> Iterable[TagKind]:
         return self._kinds
 
-    def add(self, tag: TagSpec):
-        self._tags.append(tag)
+    def add_tag(self, label: str, kind: TagKind, description: str):
+        spec = TagSpec(label=label, kind=kind, description=description)
+        self._tags.append(spec)
 
     @staticmethod
     def _validate_tag(tag: TagSpec, filter_spec: GetTagFilterSpec) -> bool:
@@ -28,28 +30,14 @@ class MemoryTagRegistry:
             return tag.kind == filter_spec.kind
         return True
 
-    def get(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]:
+    def get_tags(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]:
         return (t for t in self._tags if self._validate_tag(t, filter_spec))
 
-
-class MemoryImageRegistry:
-    def __init__(self):
-        self._image_lut: dict[Path, ImageSpec] = {}
-
-    def add(self, path: Path) -> ImageSpec:
+    def add_image(self, path: Path) -> ImageSpec:
         spec = ImageSpec(path=path)
-        self._image_lut[spec.path] = spec
+        self._images[spec.path] = spec
 
         return spec
-
-    def add_tags(self, tags: Iterable[tuple[ImageSpec, TagSpec]]):
-        for img, tag in tags:
-            spec = self._image_lut[img.path]
-            self._image_lut[img.path] = ImageSpec(
-                path=img.path,
-                tags=(*spec.tags, tag.label),
-                created_at=spec.created_at,
-            )
 
     @staticmethod
     def _validate_image(img: ImageSpec, filter_spec: GetImageFilterSpec) -> bool:
@@ -64,9 +52,18 @@ class MemoryImageRegistry:
                 return False
         return True
 
-    def get(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]:
+    def get_images(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]:
         return (
             img
-            for img in self._image_lut.values()
+            for img in self._images.values()
             if self._validate_image(img, filter_spec)
         )
+
+    def add_image_tags(self, pairs: Iterable[tuple[ImageSpec, TagSpec]]):
+        for img, tag in pairs:
+            spec = self._images[img.path]
+            self._images[img.path] = ImageSpec(
+                path=img.path,
+                tags=(*spec.tags, tag.label),
+                created_at=spec.created_at,
+            )

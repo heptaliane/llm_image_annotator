@@ -16,27 +16,17 @@ class TagSpec:
     description: str
 
 
-@dataclass
-class GetTagFilterSpec:
-    kind: TagKind | None = None
-    label: str | None = None
-
-
-class TagRegistry(Protocol):
-    def add_kind(self, label: str): ...
-
-    def get_kind(self) -> Iterable[TagKind]: ...
-
-    def add(self, tag: TagSpec): ...
-
-    def get(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]: ...
-
-
 @dataclass(frozen=True)
 class ImageSpec:
     path: Path
     tags: tuple[str, ...] = field(default_factory=tuple)
     created_at: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class GetTagFilterSpec:
+    kind: TagKind | None = None
+    label: str | None = None
 
 
 @dataclass
@@ -46,9 +36,17 @@ class GetImageFilterSpec:
     include_tags: Iterable[str] = tuple()
 
 
-class ImageRegistry(Protocol):
-    def add(self, path: Path) -> ImageSpec: ...
+class Registry(Protocol):
+    def add_tag_kind(self, label: str): ...
 
-    def add_tags(self, tags: Iterable[tuple[ImageSpec, TagSpec]]): ...
+    def get_tag_kinds(self) -> Iterable[TagKind]: ...
 
-    def get(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]: ...
+    def add_tag(self, label: str, kind: TagKind, description: str): ...
+
+    def get_tags(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]: ...
+
+    def add_image(self, path: Path) -> ImageSpec: ...
+
+    def get_images(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]: ...
+
+    def add_image_tags(self, pairs: Iterable[tuple[ImageSpec, TagSpec]]): ...
