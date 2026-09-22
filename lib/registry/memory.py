@@ -33,11 +33,10 @@ class MemoryRegistry:
     def get_tags(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]:
         return (t for t in self._tags if self._validate_tag(t, filter_spec))
 
-    def add_image(self, path: Path) -> ImageSpec:
-        spec = ImageSpec(path=path)
-        self._images[spec.path] = spec
-
-        return spec
+    def add_images(self, paths: Iterable[Path]):
+        for path in paths:
+            spec = ImageSpec(path=path)
+            self._images[spec.path] = spec
 
     @staticmethod
     def _validate_image(img: ImageSpec, filter_spec: GetImageFilterSpec) -> bool:

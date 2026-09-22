@@ -5,6 +5,9 @@ from PIL.Image import Image
 
 type ImageFormat = Literal["JPEG", "PNG"]
 
+DEFAULT_FORMAT: ImageFormat = "JPEG"
+
 
 class ImageStorage(Protocol):
-    def save(self, img: Image, format: ImageFormat) -> Path: ...
+    def set_format(self, format: ImageFormat): ...
+    def save(self, img: Image) -> Path: ...

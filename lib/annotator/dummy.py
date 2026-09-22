@@ -1,15 +1,21 @@
-from typing import Iterable
+from typing import Iterable, Iterator
 
+from ..annotator.base import AnnotationResult
 from ..registry.base import ImageSpec, TagSpec
 
 
 class StaticImageAnnotator:
+    def __init__(self, likelihood: Iterator[float]):
+        self._likelihood = likelihood
+
     def annotate(
         self,
-        imgs: Iterable[ImageSpec],
-        tags: Iterable[TagSpec],
-    ) -> Iterable[tuple[ImageSpec, TagSpec]]:
-        return ((img, tag) for img in imgs for tag in tags)
+        pairs: Iterable[tuple[ImageSpec, TagSpec]],
+    ) -> Iterable[AnnotationResult]:
+        return (
+            AnnotationResult(image=img, tag=tag, likelihood=next(self._likelihood))
+            for img, tag in pairs
+        )
 
     def name(self) -> str:
         return "dummy"
