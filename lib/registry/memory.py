@@ -11,16 +11,14 @@ class MemoryRegistry:
         self._tags: list[TagSpec] = []
         self._images: dict[Path, ImageSpec] = {}
 
-    def add_tag_kind(self, label: str):
-        kind = TagKind(label=label)
+    def add_tag_kind(self, kind: TagKind):
         self._kinds.append(kind)
 
     def get_tag_kinds(self) -> Iterable[TagKind]:
         return self._kinds
 
-    def add_tag(self, label: str, kind: TagKind, description: str):
-        spec = TagSpec(label=label, kind=kind, description=description)
-        self._tags.append(spec)
+    def add_tag(self, tag: TagSpec):
+        self._tags.append(tag)
 
     @staticmethod
     def _validate_tag(tag: TagSpec, filter_spec: GetTagFilterSpec) -> bool:
@@ -33,10 +31,9 @@ class MemoryRegistry:
     def get_tags(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]:
         return (t for t in self._tags if self._validate_tag(t, filter_spec))
 
-    def add_images(self, paths: Iterable[Path]):
-        for path in paths:
-            spec = ImageSpec(path=path)
-            self._images[spec.path] = spec
+    def add_images(self, imgs: Iterable[ImageSpec]):
+        for img in imgs:
+            self._images[img.path] = img
 
     @staticmethod
     def _validate_image(img: ImageSpec, filter_spec: GetImageFilterSpec) -> bool:
