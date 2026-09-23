@@ -1,14 +1,6 @@
-from dataclasses import dataclass
 from typing import Iterable, Protocol
 
-from ..registry.base import ImageSpec, TagSpec
-
-
-@dataclass(frozen=True)
-class AnnotationResult:
-    image: ImageSpec
-    tag: TagSpec
-    likelihood: float
+from ..registry.base import AnnotationResult, ImageSpec, TagSpec
 
 
 class ImageAnnotator(Protocol):

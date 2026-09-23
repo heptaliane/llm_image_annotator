@@ -1,7 +1,6 @@
 from typing import Iterable, Iterator
 
-from ..annotator.base import AnnotationResult
-from ..registry.base import ImageSpec, TagSpec
+from ..registry.base import AnnotationResult, ImageSpec, TagSpec
 
 
 class StaticImageAnnotator:
@@ -13,7 +12,11 @@ class StaticImageAnnotator:
         pairs: Iterable[tuple[ImageSpec, TagSpec]],
     ) -> Iterable[AnnotationResult]:
         return (
-            AnnotationResult(image=img, tag=tag, likelihood=next(self._likelihood))
+            AnnotationResult(
+                image_path=img.path,
+                tag_name=tag.name,
+                likelihood=next(self._likelihood),
+            )
             for img, tag in pairs
         )
 

@@ -1,65 +1,98 @@
-from pathlib import Path
+from functools import partial
 from typing import Iterable
 
-from .base import (GetImageFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
-                   TagSpec)
+from .base import (AnnotatedImageSpec, AnnotationResult,
+                   GetAnnotationFilterSpec, GetImagesFilterSpec,
+                   GetTagFilterSpec, ImageSpec, TagKind, TagSpec)
 
 
 class MemoryRegistry:
     def __init__(self):
-        self._kinds: list[TagKind] = []
-        self._tags: list[TagSpec] = []
-        self._images: dict[Path, ImageSpec] = {}
+        self._kinds: dict[str, TagKind] = {}
+        self._tags: dict[str, TagSpec] = {}
+        self._images: dict[str, ImageSpec] = {}
+        self._annotations: list[AnnotationResult] = []
 
     def add_tag_kind(self, kind: TagKind):
-        self._kinds.append(kind)
+        self._kinds[kind.name] = kind
 
     def get_tag_kinds(self) -> Iterable[TagKind]:
-        return self._kinds
+        return self._kinds.values()
 
     def add_tag(self, tag: TagSpec):
-        self._tags.append(tag)
+        self._tags[tag.name] = tag
 
     @staticmethod
     def _validate_tag(tag: TagSpec, filter_spec: GetTagFilterSpec) -> bool:
-        if filter_spec.label is not None:
-            return tag.label == filter_spec.label
-        if filter_spec.kind is not None:
-            return tag.kind == filter_spec.kind
+        if filter_spec.name is not None:
+            return tag.name == filter_spec.name
+        if filter_spec.kind_name is not None:
+            return tag.kind_name == filter_spec.kind_name
         return True
 
     def get_tags(self, filter_spec: GetTagFilterSpec) -> Iterable[TagSpec]:
-        return (t for t in self._tags if self._validate_tag(t, filter_spec))
+        return (
+            tag for tag in self._tags.values() if self._validate_tag(tag, filter_spec)
+        )
 
     def add_images(self, imgs: Iterable[ImageSpec]):
         for img in imgs:
             self._images[img.path] = img
 
-    @staticmethod
-    def _validate_image(img: ImageSpec, filter_spec: GetImageFilterSpec) -> bool:
-        for tag in filter_spec.include_tags:
-            if tag not in img.tags:
-                return False
-        if filter_spec.created_after is not None:
-            if img.created_at < filter_spec.created_after:
-                return False
-        if filter_spec.created_before is not None:
-            if img.created_at > filter_spec.created_before:
-                return False
-        return True
-
-    def get_images(self, filter_spec: GetImageFilterSpec) -> Iterable[ImageSpec]:
-        return (
-            img
-            for img in self._images.values()
-            if self._validate_image(img, filter_spec)
+    def _annotate_image_spec(self, img: ImageSpec) -> AnnotatedImageSpec:
+        annotations = self.get_annotations(
+            GetAnnotationFilterSpec(
+                image_paths={img.path},
+            )
+        )
+        return AnnotatedImageSpec(
+            path=img.path,
+            created_at=img.created_at,
+            tag_names=frozenset((a.tag_name for a in annotations)),
         )
 
-    def add_image_tags(self, pairs: Iterable[tuple[ImageSpec, TagSpec]]):
-        for img, tag in pairs:
-            spec = self._images[img.path]
-            self._images[img.path] = ImageSpec(
-                path=img.path,
-                tags=(*spec.tags, tag.label),
-                created_at=spec.created_at,
-            )
+    @staticmethod
+    def _validate_annotated_image(
+        image: AnnotatedImageSpec,
+        filter_spec: GetImagesFilterSpec,
+    ) -> bool:
+        if len(filter_spec.tag_names) > 0:
+            return image.tag_names >= filter_spec.tag_names
+        return True
+
+    def get_images(
+        self, filter_spec: GetImagesFilterSpec
+    ) -> Iterable[AnnotatedImageSpec]:
+        target: Iterable[ImageSpec] = self._images.values()
+        if len(filter_spec.paths) > 0:
+            target = (img for img in target if img.path in filter_spec.paths)
+        annotated = (self._annotate_image_spec(img) for img in target)
+
+        return (
+            img for img in annotated if self._validate_annotated_image(img, filter_spec)
+        )
+
+    def add_annotations(self, results: Iterable[AnnotationResult]):
+        self._annotations.extend(results)
+
+    def _validate_annotation(
+        self,
+        annotation: AnnotationResult,
+        filter_spec: GetAnnotationFilterSpec,
+    ) -> bool:
+        if len(filter_spec.image_paths) > 0:
+            return annotation.image_path not in filter_spec.image_paths
+        if len(filter_spec.tag_names) > 0:
+            return annotation.tag_name not in filter_spec.tag_names
+        if filter_spec.ignore_likelihood_threshold:
+            return True
+        return annotation.likelihood > self._tags[annotation.tag_name].threshold
+
+    def get_annotations(
+        self,
+        filter_spec: GetAnnotationFilterSpec,
+    ) -> Iterable[AnnotationResult]:
+        return filter(
+            partial(self._validate_annotation, filter_spec=filter_spec),
+            self._annotations,
+        )
