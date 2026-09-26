@@ -2,8 +2,10 @@ from typing import Iterable, Iterator
 
 from ..registry.base import AnnotationResult, ImageSpec, TagSpec
 
+_DUMMY_ANNOTATOR_NAME = "dummy"
 
-class StaticImageAnnotator:
+
+class DummyImageAnnotator:
     def __init__(self, likelihood: Iterator[float]):
         self._likelihood = likelihood
 
@@ -13,6 +15,7 @@ class StaticImageAnnotator:
     ) -> Iterable[AnnotationResult]:
         return (
             AnnotationResult(
+                annotator=_DUMMY_ANNOTATOR_NAME,
                 image_path=img.path,
                 tag_name=tag.name,
                 likelihood=next(self._likelihood),
@@ -21,4 +24,4 @@ class StaticImageAnnotator:
         )
 
     def name(self) -> str:
-        return "dummy"
+        return _DUMMY_ANNOTATOR_NAME

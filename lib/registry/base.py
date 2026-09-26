@@ -33,6 +33,7 @@ class AnnotationResult:
     image_path: str
     tag_name: str
     likelihood: float
+    annotator: str
 
 
 @dataclass
@@ -44,11 +45,17 @@ class GetTagFilterSpec:
 @dataclass
 class GetImagesFilterSpec:
     paths: Set[str] = field(default_factory=set)
+
+
+@dataclass(kw_only=True)
+class GetAnnotatedImagesFilterSpec(GetImagesFilterSpec):
+    annotator: str
     tag_names: Set[str] = field(default_factory=set)
 
 
 @dataclass
 class GetAnnotationFilterSpec:
+    annotator: str
     image_paths: Set[str] = field(default_factory=set)
     tag_names: Set[str] = field(default_factory=set)
     ignore_likelihood_threshold: bool = False
@@ -65,8 +72,10 @@ class Registry(Protocol):
 
     def add_images(self, imgs: Iterable[ImageSpec]): ...
 
-    def get_images(
-        self, filter_spec: GetImagesFilterSpec
+    def get_images(self, filter_spec: GetImagesFilterSpec) -> Iterable[ImageSpec]: ...
+
+    def get_annotated_images(
+        self, filter_spec: GetAnnotatedImagesFilterSpec
     ) -> Iterable[AnnotatedImageSpec]: ...
 
     def add_annotations(self, results: Iterable[AnnotationResult]): ...

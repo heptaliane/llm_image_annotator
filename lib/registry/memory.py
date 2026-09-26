@@ -1,9 +1,9 @@
-from functools import partial
 from typing import Iterable
 
 from .base import (AnnotatedImageSpec, AnnotationResult,
-                   GetAnnotationFilterSpec, GetImagesFilterSpec,
-                   GetTagFilterSpec, ImageSpec, TagKind, TagSpec)
+                   GetAnnotatedImagesFilterSpec, GetAnnotationFilterSpec,
+                   GetImagesFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
+                   TagSpec)
 
 
 class MemoryRegistry:
@@ -39,9 +39,12 @@ class MemoryRegistry:
         for img in imgs:
             self._images[img.path] = img
 
-    def _annotate_image_spec(self, img: ImageSpec) -> AnnotatedImageSpec:
+    def _annotate_image_spec(
+        self, img: ImageSpec, annotator: str
+    ) -> AnnotatedImageSpec:
         annotations = self.get_annotations(
             GetAnnotationFilterSpec(
+                annotator=annotator,
                 image_paths={img.path},
             )
         )
@@ -54,19 +57,28 @@ class MemoryRegistry:
     @staticmethod
     def _validate_annotated_image(
         image: AnnotatedImageSpec,
-        filter_spec: GetImagesFilterSpec,
+        filter_spec: GetAnnotatedImagesFilterSpec,
     ) -> bool:
         if len(filter_spec.tag_names) > 0:
             return image.tag_names >= filter_spec.tag_names
         return True
 
-    def get_images(
-        self, filter_spec: GetImagesFilterSpec
+    def get_images(self, filter_spec: GetImagesFilterSpec) -> Iterable[ImageSpec]:
+        images = self._images.values()
+        if len(filter_spec.paths) == 0:
+            return images
+        return (image for image in images if image.path in filter_spec.paths)
+
+    def get_annotated_images(
+        self,
+        filter_spec: GetAnnotatedImagesFilterSpec,
     ) -> Iterable[AnnotatedImageSpec]:
         target: Iterable[ImageSpec] = self._images.values()
         if len(filter_spec.paths) > 0:
             target = (img for img in target if img.path in filter_spec.paths)
-        annotated = (self._annotate_image_spec(img) for img in target)
+        annotated = (
+            self._annotate_image_spec(img, filter_spec.annotator) for img in target
+        )
 
         return (
             img for img in annotated if self._validate_annotated_image(img, filter_spec)
@@ -80,6 +92,8 @@ class MemoryRegistry:
         annotation: AnnotationResult,
         filter_spec: GetAnnotationFilterSpec,
     ) -> bool:
+        if filter_spec.annotator != annotation.annotator:
+            return False
         if len(filter_spec.image_paths) > 0:
             return annotation.image_path not in filter_spec.image_paths
         if len(filter_spec.tag_names) > 0:
@@ -92,7 +106,8 @@ class MemoryRegistry:
         self,
         filter_spec: GetAnnotationFilterSpec,
     ) -> Iterable[AnnotationResult]:
-        return filter(
-            partial(self._validate_annotation, filter_spec=filter_spec),
-            self._annotations,
+        return (
+            annotation
+            for annotation in self._annotations
+            if self._validate_annotation(annotation, filter_spec)
         )
