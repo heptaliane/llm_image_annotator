@@ -1,9 +1,16 @@
 from typing import Iterable
 
-from .base import (AnnotatedImageSpec, AnnotationResult,
-                   GetAnnotatedImagesFilterSpec, GetAnnotationFilterSpec,
-                   GetImagesFilterSpec, GetTagFilterSpec, ImageSpec, TagKind,
-                   TagSpec)
+from .base import (
+    AnnotatedImageSpec,
+    AnnotationResult,
+    GetAnnotatedImagesFilterSpec,
+    GetAnnotationFilterSpec,
+    GetImagesFilterSpec,
+    GetTagFilterSpec,
+    ImageSpec,
+    TagKind,
+    TagSpec,
+)
 
 
 class MemoryRegistry:

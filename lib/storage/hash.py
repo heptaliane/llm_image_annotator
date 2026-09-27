@@ -8,9 +8,9 @@ from PIL.Image import Image
 from .base import DEFAULT_FORMAT, ImageFormat
 
 
-class ImageStorage:
-    def __init__(self, basedir: Path):
-        self._basedir = basedir
+class HashImageStorage:
+    def __init__(self, basedir: str):
+        self._basedir = Path(basedir)
         self._format: ImageFormat = DEFAULT_FORMAT
 
     def set_format(self, format: ImageFormat):

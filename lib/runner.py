@@ -5,9 +5,16 @@ from typing import Iterable
 from PIL.Image import Image
 
 from .annotator.base import ImageAnnotator
-from .registry.base import (AnnotatedImageSpec, GetAnnotatedImagesFilterSpec,
-                            GetImagesFilterSpec, GetTagFilterSpec, ImageSpec,
-                            Registry, TagKind, TagSpec)
+from .registry.base import (
+    AnnotatedImageSpec,
+    GetAnnotatedImagesFilterSpec,
+    GetImagesFilterSpec,
+    GetTagFilterSpec,
+    ImageSpec,
+    Registry,
+    TagKind,
+    TagSpec,
+)
 from .storage.base import ImageStorage
 
 
